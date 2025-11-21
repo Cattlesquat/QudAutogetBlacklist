@@ -9,6 +9,7 @@ using XRL.World.Anatomy;
 using XRL.World.Parts;
 using XRL.World.Parts.Skill;
 using XRL.World.Tinkering;
+using UnityEngine;
 using HarmonyLib;
 
 namespace XRL.World.Parts
@@ -63,8 +64,15 @@ namespace XRL.World.Parts
 			{
 				if (E.Actor.IsPlayer())
 				{
-					//XRL.Messages.MessageQueue.AddPlayerMessage("TOGGLING Blacklist: " + Cattlesquat_AutogetBlacklist_Examiner_Patcher.ToggleKey(E.Item));
+					//XRL.Messages.MessageQueue.AddPlayerMessage("TOGGLING Blacklist: " + E.Item.Blueprint);
 					Cattlesquat_AutogetBlacklist_Examiner_Patcher.ToggleBlacklist(E.Item);
+
+                    if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(E.Item)) {
+						Popup.Show("You resolve to stop collecting *any* kind of " + E.Item.BaseDisplayName + ".");
+					}
+					else {
+						Popup.Show("You resume collecting all kinds of " + E.Item.BaseDisplayName + ".");
+                    }
 				}
 			}
 			return base.HandleEvent(E);
@@ -76,7 +84,7 @@ namespace XRL.World.Parts
 	public class Cattlesquat_AutogetBlacklist_Examiner_Patcher
 	{
 		[HarmonyPatch(nameof(XRL.World.Parts.Examiner.HandleEvent), new Type[] { typeof(AutoexploreObjectEvent) } )]
-		static bool Prefix(Examiner __instance, AutoexploreObjectEvent E)
+		static bool Prefix(Examiner __instance, ref bool __result, AutoexploreObjectEvent E)
 		{
 			if (__instance.Complexity > 0 && E.Command == null && Options.AutogetArtifacts && __instance.ParentObject.CanAutoget())
 			{
@@ -89,10 +97,10 @@ namespace XRL.World.Parts
 				}
 
 				if (!CheckBlacklistToggle(__instance.ParentObject)) return true; // Check to see if this item has been blacklisted - if it hasn't, we allow the regular method to run, which will autoget it
-				
-				// If we made it here, the item has been actively blacklisted, so we just call the base HandleEvent method and otherwise get out, cancelling the original might-autoget routine.  
-				
-	 			(__instance as IPart).HandleEvent(E); // Call base method
+
+				// If we made it here, the item has been actively blacklisted, so we just call the base HandleEvent method and otherwise get out, cancelling the original might-autoget routine.  				
+	 			//__result = ((__instance as IComponent<GameObject>).HandleEvent(E)); // Call base method
+                __result = true;
 				return false;
 			}
 
@@ -101,7 +109,7 @@ namespace XRL.World.Parts
 		
 		public static string ToggleKey(GameObject obj)
 		{
-			return "Cattlesquat_Blacklist_" + obj.GetTinkeringBlueprint(); // No mod profile - don't want to pick up every variation
+			return "Cattlesquat_Blacklist_" + obj.Blueprint; //No mod profile - don't want to pick up every variation either
 			//return "Cattlesquat_Blacklist_" + Tinkering_Disassemble.ToggleKey(obj);
 		}
 		
