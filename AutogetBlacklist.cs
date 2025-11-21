@@ -55,6 +55,35 @@ namespace XRL.World.Parts
 				}
 			}
 
+            if ((E.Object.GetInventoryCategory() == "Food") && Options.AutogetFood) {
+				if (!Options.AutogetSpecialItems || !E.Object.IsSpecialItem()) {
+					if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(E.Object))
+					{
+						E.AddAction(
+							Name: "Toggle Blacklist",
+							Display: "start collecting these with Autoget",
+							Command: "ToggleBlacklist",
+							Key: 'S',
+							PreferToHighlight: "start",
+							WorksAtDistance: true,
+							FireOnActor: true
+						);
+					}
+					else
+					{
+						E.AddAction(
+							Name: "Toggle Blacklist",
+							Display: "stop collecting these with Autoget",
+							Command: "ToggleBlacklist",
+							Key: 'S',
+							PreferToHighlight: "stop",
+							WorksAtDistance: true,
+							FireOnActor: true
+						);
+					}
+                }
+            }
+
 			return base.HandleEvent(E);            
 		}
 		
@@ -78,6 +107,25 @@ namespace XRL.World.Parts
 			return base.HandleEvent(E);
 		}
 	}
+
+	[HarmonyPatch(typeof(XRL.World.GameObject))]
+    public class Cattlesquat_AutogetBlacklist_GameObject_Patcher 
+    {
+        [HarmonyPatch(nameof(XRL.World.GameObject.ShouldAutoget), new Type[] {} )]
+    	static bool Prefix(GameObject __instance, ref bool __result) {
+            if (!Options.AutogetSpecialItems || !__instance.IsSpecialItem())
+            {
+                if (__instance.GetInventoryCategory() == "Food") {
+                    if (CheckBlacklistToggle(__instance.ParentObject)) {
+                        __result = false;
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+    }
 	
 	
 	[HarmonyPatch(typeof(XRL.World.Parts.Examiner))]
