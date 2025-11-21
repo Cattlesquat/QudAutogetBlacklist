@@ -26,64 +26,53 @@ namespace XRL.World.Parts
 		
 		public override bool HandleEvent(OwnerGetInventoryActionsEvent E)
 		{
+            bool canBlacklist = false;
+
 			if (E.Object.HasPart<Examiner>() && E.Object.Understood() && !E.Object.IsSpecialItem() && ((E.Actor == null) || !E.Actor.IsConfused) && Options.AutogetArtifacts && (E.Object.GetPart<Examiner>().Complexity > 0))
 			{
 				if (!The.Player.HasSkill("Tinkering_Disassemble") || (!Tinkering_Disassemble.CanBeConsideredScrap(E.Object) && !TinkeringHelpers.ConsiderStandardScrap(E.Object)))
 				{
-					if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(E.Object))
-					{
-						E.AddAction(
-							Name: "Toggle Blacklist",
-							Display: "start collecting these with Autoget",
-							Command: "ToggleBlacklist",
-							Key: 'S',
-							PreferToHighlight: "start",
-							WorksAtDistance: true,
-							FireOnActor: true
-						);
-					}
-					else
-					{
-						E.AddAction(
-							Name: "Toggle Blacklist",
-							Display: "stop collecting these with Autoget",
-							Command: "ToggleBlacklist",
-							Key: 'S',
-							PreferToHighlight: "stop",
-							WorksAtDistance: true,
-							FireOnActor: true
-						);
-					}
+					canBlacklist = true;
 				}
 			}
 
-            if (((E.Object.GetInventoryCategory() == "Food") && Options.AutogetFood) || (E.Object.Blueprint == "Witchwood Bark")) {
-				if (!Options.AutogetSpecialItems || !E.Object.IsSpecialItem()) {
-					if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(E.Object))
-					{
-						E.AddAction(
-							Name: "Toggle Blacklist",
-							Display: "start collecting these with Autoget",
-							Command: "ToggleBlacklist",
-							Key: 'S',
-							PreferToHighlight: "start",
-							WorksAtDistance: true,
-							FireOnActor: true
-						);
-					}
-					else
-					{
-						E.AddAction(
-							Name: "Toggle Blacklist",
-							Display: "stop collecting these with Autoget",
-							Command: "ToggleBlacklist",
-							Key: 'S',
-							PreferToHighlight: "stop",
-							WorksAtDistance: true,
-							FireOnActor: true
-						);
-					}
+            if (((E.Object.GetInventoryCategory() == "Food") && Options.AutogetFood) || (E.Object.Blueprint == "Witchwood Bark")) 
+			{
+				if (!Options.AutogetSpecialItems || !E.Object.IsSpecialItem()) 
+				{
+					canBlacklist = true;
                 }
+            }
+
+            if ((E.Object.GetInventoryCategory() == "Ammo") && (Options.AutogetAmmo || Options.AutogetPrimitiveAmmo)) {
+            	canBlacklist = true;
+			}
+
+            if (canBlacklist) {
+				if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(E.Object))
+				{
+					E.AddAction(
+						Name: "Toggle Blacklist",
+						Display: "start collecting these with Autoget",
+						Command: "ToggleBlacklist",
+						Key: 'S',
+						PreferToHighlight: "start",
+						WorksAtDistance: true,
+						FireOnActor: true
+					);
+				}
+				else
+				{
+					E.AddAction(
+						Name: "Toggle Blacklist",
+						Display: "stop collecting these with Autoget",
+						Command: "ToggleBlacklist",
+						Key: 'S',
+						PreferToHighlight: "stop",
+						WorksAtDistance: true,
+						FireOnActor: true
+					);
+				}
             }
 
 			return base.HandleEvent(E);            
@@ -129,6 +118,37 @@ namespace XRL.World.Parts
             return true;
         }
     }
+
+    // Blacklisting for Ammo pickups 
+	[HarmonyPatch(typeof(XRL.World.Parts.IAmmo))]
+    public class Cattlesquat_AutogetBlacklist_IAmmo_Patcher 
+    {
+        [HarmonyPatch(nameof(XRL.World.Parts.IAmmo.HandleEvent), new Type[] { typeof(AutoexploreObjectEvent) } )]
+    	static bool Prefix(GameObject __instance, ref bool __result, AutoexploreObjectEvent E) {
+            if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(__instance)) {
+                __result = false;
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    // Blacklisting for Primitive Ammo pickups 
+	[HarmonyPatch(typeof(XRL.World.Parts.AmmoArrow))]
+    public class Cattlesquat_AutogetBlacklist_AmmoArrow_Patcher 
+    {
+        [HarmonyPatch(nameof(XRL.World.Parts.AmmoArrow.HandleEvent), new Type[] { typeof(AutoexploreObjectEvent) } )]
+    	static bool Prefix(GameObject __instance, ref bool __result, AutoexploreObjectEvent E) {
+            if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(__instance)) {
+                __result = false;
+                return false;
+            }
+
+            return true;
+        }
+    }
+
 
     // If we're not picking up a food item, don't harvest it either
     [HarmonyPatch(typeof(XRL.World.Parts.Harvestable))]
@@ -177,7 +197,7 @@ namespace XRL.World.Parts
 		
 		public static string ToggleKey(GameObject obj)
 		{
-			return "Cattlesquat_Blacklist_" + obj.Blueprint; //No mod profile - don't want to pick up every variation either
+			return "Cattlesquat_Blacklist_" + (obj.Blueprint ?? "Unknown"); //No mod profile - don't want to pick up every variation either
 			//return "Cattlesquat_Blacklist_" + Tinkering_Disassemble.ToggleKey(obj);
 		}
 		
