@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<options>
+	<option ID="OptionBroaderTreatAsScrap" DisplayText="{{zetachrome|Autoget}} {{opalescent|Blacklist}}: Use broader categories for Treat as Scrap" Category="Autoget" Type="Checkbox" Default="No"/>
+</options>

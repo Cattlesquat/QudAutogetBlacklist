@@ -55,7 +55,7 @@ namespace XRL.World.Parts
 				}
 			}
 
-            if ((E.Object.GetInventoryCategory() == "Food") && Options.AutogetFood) {
+            if (((E.Object.GetInventoryCategory() == "Food") && Options.AutogetFood) || (E.Object.Blueprint == "Witchwood Bark")) {
 				if (!Options.AutogetSpecialItems || !E.Object.IsSpecialItem()) {
 					if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(E.Object))
 					{
@@ -108,6 +108,7 @@ namespace XRL.World.Parts
 		}
 	}
 
+    // Blacklisting for Food pickups (die, Qudzu Stem!!!)
 	[HarmonyPatch(typeof(XRL.World.GameObject))]
     public class Cattlesquat_AutogetBlacklist_GameObject_Patcher 
     {
@@ -116,7 +117,7 @@ namespace XRL.World.Parts
             if (!Options.AutogetSpecialItems || !__instance.IsSpecialItem())
             {
                 if (__instance.GetInventoryCategory() == "Food") {
-                    if (CheckBlacklistToggle(__instance.ParentObject)) {
+                    if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(__instance)) {
                         __result = false;
                         return false;
                     }
@@ -126,6 +127,23 @@ namespace XRL.World.Parts
             return true;
         }
     }
+
+    // If we're not picking up a food item, don't harvest it either
+    [HarmonyPatch(typeof(XRL.World.Parts.Harvestable))]
+    public class Cattlesquat_AutogetBlacklist_Harvestable_Patcher
+    {
+		[HarmonyPatch(nameof(XRL.World.Parts.Harvestable.AttemptHarvest), new Type[] { typeof(GameObject), typeof(bool), typeof(string), typeof(Cell), typeof(List<GameObject>) } )]
+        static bool Prefix (Harvestable __instance, ref bool __result, GameObject who, bool Automatic, string Verb, Cell FromCell, List<GameObject> Tracking) {
+            if (Automatic && who.IsPlayer()) {
+                string toggleKey = "Cattlesquat_Blacklist_" + __instance.OnSuccess; // The OnSuccess is a Blueprint, so we check for that specific blueprint being blacklisted
+                if (The.Game.GetBooleanGameState(toggleKey)) {
+                    __result = false;
+                    return false;
+                }
+            } 
+            return true;
+        }
+    } 
 	
 	
 	[HarmonyPatch(typeof(XRL.World.Parts.Examiner))]
@@ -183,6 +201,89 @@ namespace XRL.World.Parts
 			SetBlacklistToggle(obj, !CheckBlacklistToggle(obj));
 		}
 	}
+
+    
+    // If "broader treat-as-scrap" option selected, then override Treat-as-Scrap toggles to be broader
+    [HarmonyPatch(typeof(XRL.World.Parts.Skill.Tinkering_Disassemble))]
+    public class Cattlesquat_AutogetBlacklist_TinkeringDisassemble_Patcher
+    {
+
+		public static string ToggleKey(GameObject obj)
+		{
+			return "Cattlesquat_ScrapBlacklist_" + obj.Blueprint; 
+		}
+		
+		public static bool CheckScrapBlacklistToggle(GameObject obj)
+		{
+			return The.Game.GetBooleanGameState(ToggleKey(obj)) && obj.Understood();
+		}
+        
+		public static void SetScrapBlacklistToggle(GameObject obj, bool flag)
+		{
+			if (flag)
+			{
+				The.Game.SetBooleanGameState(ToggleKey(obj), true);
+			}
+			else
+			{
+				The.Game.RemoveBooleanGameState(ToggleKey(obj));
+			}
+		}
+
+		public static void ToggleScrapBlacklist(GameObject obj)
+		{
+			SetScrapBlacklistToggle(obj, !CheckScrapBlacklistToggle(obj));
+		}
+
+        
+
+    	[HarmonyPatch(nameof(XRL.World.Parts.Skill.Tinkering_Disassemble.CheckScrapToggle), new Type[] { typeof(GameObject) } )]
+    	static bool Prefix(ref bool __result, GameObject obj)
+    	{
+            if (Options.GetOptionBool("OptionBroaderTreatAsScrap")) {
+            	__result = CheckScrapBlacklistToggle(obj);
+                return false;
+            }
+            return true;
+        }
+
+    	[HarmonyPatch(nameof(XRL.World.Parts.Skill.Tinkering_Disassemble.SetScrapToggle), new Type[] { typeof(GameObject), typeof(bool) } )]
+    	static bool Prefix(GameObject obj, bool flag)
+    	{
+            if (Options.GetOptionBool("OptionBroaderTreatAsScrap")) {
+				SetScrapBlacklistToggle(obj, flag);
+                if (flag) {
+                    Popup.Show("You start treating all kinds of " + obj.BaseDisplayName + " as scrap.");
+                }
+                else
+                {
+                    Popup.Show("You stop treating any kinds of " + obj.BaseDisplayName + " as scrap.");
+				}
+                return false;
+            }
+            return true;
+        }                        
+    }
+
+    /*
+    public static bool CheckScrapToggle(GameObject obj)
+    {
+        return The.Game.GetBooleanGameState(ToggleKey(obj)) && obj.Understood();
+    }
+    
+    public static void SetScrapToggle(GameObject obj, bool flag)
+    {
+        if (flag)
+        {
+            The.Game.SetBooleanGameState(ToggleKey(obj), true);
+        }
+        else
+        {
+            The.Game.RemoveBooleanGameState(ToggleKey(obj));
+        }
+    }
+    */
+
 	
 	
 	
