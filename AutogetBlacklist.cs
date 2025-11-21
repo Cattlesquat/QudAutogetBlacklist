@@ -16,6 +16,8 @@ namespace XRL.World.Parts
 {
 	public class Cattlesquat_AutogetBlacklist : IPlayerSystem
 	{
+		public static readonly string MOD_ID = "AutogetBlacklist";
+
 		public override void RegisterPlayer(GameObject Player, IEventRegistrar Registrar)
 		{
 			Registrar.Register(OwnerGetInventoryActionsEvent.ID);   // Add the blacklist commands to game objects' twiddle menus
