@@ -124,8 +124,8 @@ namespace XRL.World.Parts
     public class Cattlesquat_AutogetBlacklist_IAmmo_Patcher 
     {
         [HarmonyPatch(nameof(XRL.World.Parts.IAmmo.HandleEvent), new Type[] { typeof(AutoexploreObjectEvent) } )]
-    	static bool Prefix(GameObject __instance, ref bool __result, AutoexploreObjectEvent E) {
-            if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(__instance)) {
+    	static bool Prefix(IAmmo __instance, ref bool __result, AutoexploreObjectEvent E) {
+            if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(__instance.ParentObject)) {
                 __result = false;
                 return false;
             }
@@ -139,8 +139,8 @@ namespace XRL.World.Parts
     public class Cattlesquat_AutogetBlacklist_AmmoArrow_Patcher 
     {
         [HarmonyPatch(nameof(XRL.World.Parts.AmmoArrow.HandleEvent), new Type[] { typeof(AutoexploreObjectEvent) } )]
-    	static bool Prefix(GameObject __instance, ref bool __result, AutoexploreObjectEvent E) {
-            if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(__instance)) {
+    	static bool Prefix(AmmoArrow __instance, ref bool __result, AutoexploreObjectEvent E) {
+            if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(__instance.ParentObject)) {
                 __result = false;
                 return false;
             }
@@ -197,7 +197,7 @@ namespace XRL.World.Parts
 		
 		public static string ToggleKey(GameObject obj)
 		{
-			return "Cattlesquat_Blacklist_" + (obj.Blueprint ?? "Unknown"); //No mod profile - don't want to pick up every variation either
+			return "Cattlesquat_Blacklist_" + (obj?.Blueprint ?? "Unknown"); //No mod profile - don't want to pick up every variation either
 			//return "Cattlesquat_Blacklist_" + Tinkering_Disassemble.ToggleKey(obj);
 		}
 		
