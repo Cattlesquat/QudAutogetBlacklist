@@ -125,7 +125,10 @@ namespace XRL.World.Parts
     {
         [HarmonyPatch(nameof(XRL.World.Parts.IAmmo.HandleEvent), new Type[] { typeof(AutoexploreObjectEvent) } )]
     	static bool Prefix(IAmmo __instance, ref bool __result, AutoexploreObjectEvent E) {
+   			XRL.Messages.MessageQueue.AddPlayerMessage("Regular Ammo Patcher check: " + __instance.ParentObject.Blueprint);
+
             if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(__instance.ParentObject)) {
+   				XRL.Messages.MessageQueue.AddPlayerMessage("Regular Ammo Patcher check (BLACKLISTED!): " + __instance.ParentObject.Blueprint);
                 __result = false;
                 return false;
             }
@@ -140,7 +143,9 @@ namespace XRL.World.Parts
     {
         [HarmonyPatch(nameof(XRL.World.Parts.AmmoArrow.HandleEvent), new Type[] { typeof(AutoexploreObjectEvent) } )]
     	static bool Prefix(AmmoArrow __instance, ref bool __result, AutoexploreObjectEvent E) {
+   			XRL.Messages.MessageQueue.AddPlayerMessage("ARROW Ammo Patcher check: " + __instance.ParentObject.Blueprint);
             if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(__instance.ParentObject)) {
+   			    XRL.Messages.MessageQueue.AddPlayerMessage("ARROW Ammo Patcher check (BLACKLISTED!): " + __instance.ParentObject.Blueprint);
                 __result = false;
                 return false;
             }
