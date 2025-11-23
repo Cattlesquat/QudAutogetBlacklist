@@ -107,12 +107,12 @@ namespace XRL.World.Parts
     	static bool Prefix(GameObject __instance, ref bool __result) {
             if (!Options.AutogetSpecialItems || !__instance.IsSpecialItem())
             {
-                if (__instance.GetInventoryCategory() == "Food") {
+                //if (__instance.GetInventoryCategory() == "Food") { // Removing this check so we'll also clobber e.g. zero-weight items that have been blacklisted under other categories
                     if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(__instance)) {
                         __result = false;
                         return false;
                     }
-                }
+                //}
             }
 
             return true;
@@ -125,10 +125,8 @@ namespace XRL.World.Parts
     {
         [HarmonyPatch(nameof(XRL.World.Parts.IAmmo.HandleEvent), new Type[] { typeof(AutoexploreObjectEvent) } )]
     	static bool Prefix(IAmmo __instance, ref bool __result, AutoexploreObjectEvent E) {
-   			XRL.Messages.MessageQueue.AddPlayerMessage("Regular Ammo Patcher check: " + __instance.ParentObject.Blueprint);
 
             if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(__instance.ParentObject)) {
-   				XRL.Messages.MessageQueue.AddPlayerMessage("Regular Ammo Patcher check (BLACKLISTED!): " + __instance.ParentObject.Blueprint);
                 __result = false;
                 return false;
             }
@@ -143,9 +141,7 @@ namespace XRL.World.Parts
     {
         [HarmonyPatch(nameof(XRL.World.Parts.AmmoArrow.HandleEvent), new Type[] { typeof(AutoexploreObjectEvent) } )]
     	static bool Prefix(AmmoArrow __instance, ref bool __result, AutoexploreObjectEvent E) {
-   			XRL.Messages.MessageQueue.AddPlayerMessage("ARROW Ammo Patcher check: " + __instance.ParentObject.Blueprint);
             if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(__instance.ParentObject)) {
-   			    XRL.Messages.MessageQueue.AddPlayerMessage("ARROW Ammo Patcher check (BLACKLISTED!): " + __instance.ParentObject.Blueprint);
                 __result = false;
                 return false;
             }
