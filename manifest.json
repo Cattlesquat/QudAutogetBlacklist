@@ -3,6 +3,6 @@
 	"title": "{{zetachrome|Autoget}} {{opalescent|Blacklist}}",
 	"description": "Tired of automatically grabbing unwanted items like sower's seeds and low level flaming/freezing swords just because you have 'Autoget Artifacts' turned on? With this mod you get menu item on any identified artifact to stop collecting it with Autoget. Only shows up while you have Autoget Artifacts turned on, and does not show up for items eligible for 'Treat as Scrap' once you have the Disassemble skill.\n\nhttps://github.com/Cattlesquat/QudAutogetBlacklist.git",
 	"tags": "Stable,Beta,UI,UX,Ability,Cosmetic",
-	"version": "1.0",
+	"version": "1.1",
 	"author": "{{ubernostrum|Cattlesquat}}"
 }
