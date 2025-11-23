@@ -105,7 +105,7 @@ namespace XRL.World.Parts
     {
         [HarmonyPatch(nameof(XRL.World.GameObject.ShouldAutoget), new Type[] {} )]
     	static bool Prefix(GameObject __instance, ref bool __result) {
-            if (!Options.AutogetSpecialItems || !__instance.IsSpecialItem())
+            if (__instance.CanAutoget() && (!Options.AutogetSpecialItems || !__instance.IsSpecialItem()))
             {
                 //if (__instance.GetInventoryCategory() == "Food") { // Removing this check so we'll also clobber e.g. zero-weight items that have been blacklisted under other categories
                     if (Cattlesquat_AutogetBlacklist_Examiner_Patcher.CheckBlacklistToggle(__instance)) {
